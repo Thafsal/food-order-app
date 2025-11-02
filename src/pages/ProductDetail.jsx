@@ -1,46 +1,47 @@
-import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [meal, setMeal] = useState(null);
 
   useEffect(() => {
-    async function fetchProduct() {
-      try {
-        const res = await fetch(`https://fakestoreapi.com/products/${id}`);
-        if (!res.ok) throw new Error("Failed to fetch product");
-        const data = await res.json();
-        setProduct(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+    async function fetchMeal() {
+      const res = await fetch(
+        `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`
+      );
+      const data = await res.json();
+      setMeal(data.meals ? data.meals[0] : null);
     }
-    fetchProduct();
+    fetchMeal();
   }, [id]);
 
-  if (loading)
-    return <div className="text-center text-lg text-gray-600">Loading...</div>;
-  if (error)
-    return <div className="text-center text-red-600">Error: {error}</div>;
-  if (!product)
-    return <div className="text-center text-gray-500">Product not found</div>;
+  if (!meal) return <p className="text-center mt-10">Loading...</p>;
 
   return (
-    <section className="max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded p-6">
-      <img src={product.image} alt={product.title} className="h-64 mx-auto mb-4" />
-      <h2 className="text-2xl font-semibold">{product.title}</h2>
-      <p className="text-gray-600 my-2">{product.description}</p>
-      <div className="flex justify-between items-center mt-4">
-        <div className="text-blue-600 font-bold">₹{product.price}</div>
-        <Link to="/products" className="px-4 py-2 bg-gray-800 text-white rounded">
-          Back to Menu
-        </Link>
-      </div>
-    </section>
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <img
+        src={meal.strMealThumb}
+        alt={meal.strMeal}
+        className="rounded-lg shadow-md mb-6 w-full h-80 object-cover"
+      />
+      <h2 className="text-3xl font-bold mb-3">{meal.strMeal}</h2>
+      <p className="text-gray-600 dark:text-gray-300 mb-2">
+        <strong>Category:</strong> {meal.strCategory}
+      </p>
+      <p className="text-gray-600 dark:text-gray-300 mb-2">
+        <strong>Area:</strong> {meal.strArea}
+      </p>
+      <p className="mt-4 text-gray-700 dark:text-gray-200 leading-relaxed">
+        {meal.strInstructions}
+      </p>
+
+      <Link
+        to="/"
+        className="inline-block mt-6 bg-orange-500 text-white px-4 py-2 rounded"
+      >
+        ← Back to Meals
+      </Link>
+    </div>
   );
 }

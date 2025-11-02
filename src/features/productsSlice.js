@@ -1,34 +1,28 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
-export const fetchProducts = createAsyncThunk("products/fetchProducts", async () => {
-  const response = await fetch("https://www.themealdb.com/api/json/v1/1/search.php?s=");
-  const data = await response.json();
-  return data.meals; 
-});
+export const fetchProducts = createAsyncThunk('products/fetchProducts', async () => {
+  const res = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s=')
+  if (!res.ok) throw new Error('Failed to fetch meals')
+  const data = await res.json()
+  return data.meals || []
+})
 
 const productsSlice = createSlice({
-  name: "products",
-  initialState: {
-    items: [],
-    status: "idle",
-    error: null,
-  },
+  name: 'products',
+  initialState: { items: [], status: 'idle', error: null },
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchProducts.pending, (state) => {
-        state.status = "loading";
-      })
+      .addCase(fetchProducts.pending, (state) => { state.status = 'loading' })
       .addCase(fetchProducts.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.items = action.payload;
+        state.status = 'succeeded'
+        state.items = action.payload
       })
       .addCase(fetchProducts.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message;
-      });
+        state.status = 'failed'
+        state.error = action.error.message
+      })
   },
-});
+})
 
-export default productsSlice.reducer;
+export default productsSlice.reducer
