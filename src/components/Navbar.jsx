@@ -1,4 +1,4 @@
-import { ShoppingCart, Search, Sun, Moon, Menu } from "lucide-react";
+import { ShoppingCart, Search, Sun, Moon, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useSelector } from "react-redux";
@@ -9,21 +9,20 @@ import foodaura from "../assets/foodaura-logo.png";
 export default function Navbar({ brand = "FoodAura", onSearch }) {
   const { theme, setTheme } = useTheme();
   const [q, setQ] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [loggedInUser, setLoggedInUser] = useLocalStorage("loggedInUser", null);
   const navigate = useNavigate();
 
   const cartItems = useSelector((state) => state.cart.items);
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  // 🔥 Re-render when localStorage updates
   useEffect(() => {
     const handleStorageUpdate = () => {
       const user = JSON.parse(localStorage.getItem("loggedInUser"));
       setLoggedInUser(user);
     };
     window.addEventListener("storage-update", handleStorageUpdate);
-    return () =>
-      window.removeEventListener("storage-update", handleStorageUpdate);
+    return () => window.removeEventListener("storage-update", handleStorageUpdate);
   }, []);
 
   useEffect(() => {
@@ -43,9 +42,10 @@ export default function Navbar({ brand = "FoodAura", onSearch }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-white/80 dark:bg-slate-900/70 backdrop-blur text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <header className="sticky top-0 z-50 border-b bg-white/80 dark:bg-slate-900/70 backdrop-blur text-gray-900 dark:text-gray-100 transition-colors duration-300">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="h-16 flex items-center justify-between gap-6">
+          {/* Brand Logo */}
           <Link
             to="/"
             className="flex items-center gap-3 text-orange-600 dark:text-orange-400 font-semibold text-2xl"
@@ -54,6 +54,7 @@ export default function Navbar({ brand = "FoodAura", onSearch }) {
             <span>{brand}</span>
           </Link>
 
+          {/* Search (Desktop Only) */}
           <div className="hidden md:flex items-center justify-center flex-1 px-4">
             <div className="relative w-full max-w-xl">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -66,7 +67,9 @@ export default function Navbar({ brand = "FoodAura", onSearch }) {
             </div>
           </div>
 
+          {/* Right Section */}
           <div className="flex items-center gap-4">
+            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
               title="Toggle theme"
@@ -79,6 +82,7 @@ export default function Navbar({ brand = "FoodAura", onSearch }) {
               )}
             </button>
 
+            {/* Cart */}
             <Link
               to="/cart"
               className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800"
@@ -91,6 +95,7 @@ export default function Navbar({ brand = "FoodAura", onSearch }) {
               )}
             </Link>
 
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6 text-sm">
               <Link
                 to="/categories"
@@ -106,14 +111,15 @@ export default function Navbar({ brand = "FoodAura", onSearch }) {
               </Link>
             </nav>
 
+            {/* Login / Logout */}
             {loggedInUser ? (
-              <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-3">
                 <span className="text-sm text-gray-700 dark:text-gray-200">
                   Hi, {loggedInUser.name}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="text-sm text-gray-700 dark:text-gray-200  px-3 py-2 rounded hover:text-orange-600"
+                  className="text-sm text-gray-700 dark:text-gray-200 px-3 py-2 rounded hover:text-orange-600"
                 >
                   Logout
                 </button>
@@ -121,21 +127,71 @@ export default function Navbar({ brand = "FoodAura", onSearch }) {
             ) : (
               <Link
                 to="/login"
-                className="text-sm text-gray-700 dark:text-gray-200 px-3 py-2 rounded hover:text-orange-600"
+                className="hidden md:block text-sm text-gray-700 dark:text-gray-200 px-3 py-2 rounded hover:text-orange-600"
               >
                 Login
               </Link>
             )}
 
-            {/* Mobile Menu */}
-            <div className="md:hidden flex items-center gap-2">
-              <button className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700">
-                <Menu className="h-5 w-5" />
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center">
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700"
+              >
+                {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Mobile Dropdown Menu */}
+      {menuOpen && (
+        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-gray-700 px-4 py-4 space-y-4">
+          <div className="flex flex-col space-y-2 text-sm">
+            <Link
+              to="/categories"
+              className="text-gray-700 dark:text-gray-200 hover:text-orange-600"
+              onClick={() => setMenuOpen(false)}
+            >
+              Categories
+            </Link>
+            <Link
+              to="/contact"
+              className="text-gray-700 dark:text-gray-200 hover:text-orange-600"
+              onClick={() => setMenuOpen(false)}
+            >
+              Contact
+            </Link>
+
+            {loggedInUser ? (
+              <>
+                <span className="text-gray-700 dark:text-gray-200">
+                  Hi, {loggedInUser.name}
+                </span>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMenuOpen(false);
+                  }}
+                  className="text-left text-gray-700 dark:text-gray-200 hover:text-orange-600"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMenuOpen(false)}
+                className="text-gray-700 dark:text-gray-200 hover:text-orange-600"
+              >
+                Login
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
