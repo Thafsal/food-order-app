@@ -11,14 +11,14 @@ export default function CategoryFilter() {
     dispatch(fetchCategories());
   }, [dispatch]);
 
-  const handleCategoryClick = (category) => {
-    if (selected === category) {
-      dispatch(selectCategory(null));
-      dispatch(fetchAllFoods());
-    } else {
-      dispatch(selectCategory(category));
-    }
-  };
+const handleCategoryClick = (category) => {
+  if (selected === category) {
+    dispatch(selectCategory(null));
+    dispatch(fetchAllFoods());
+  } else {
+    dispatch(selectCategory(category));
+  }
+};
 
   if (loading) return <p className="text-center py-4">Loading categories...</p>;
 

@@ -20,7 +20,6 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    // Admin login
     if (form.email === adminCredentials.email && form.password === adminCredentials.password) {
       setLoggedInUser({ name: "Admin", role: "admin" });
       alert("Welcome Admin!");
@@ -29,7 +28,6 @@ export default function LoginPage() {
     }
 
     if (isLogin) {
-      // Normal user login
       const user = users.find((u) => u.email === form.email && u.password === form.password);
       if (user) {
         setLoggedInUser(user);
@@ -39,7 +37,6 @@ export default function LoginPage() {
         setError("Invalid credentials or user not found!");
       }
     } else {
-      // Signup
       if (!form.email || !form.password || !form.name) {
         setError("Please fill all fields!");
         return;
@@ -63,7 +60,6 @@ export default function LoginPage() {
     setLoggedInUser(null);
   }
 
-  // Admin dashboard
   if (loggedInUser?.role === "admin") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh]">
@@ -88,7 +84,6 @@ export default function LoginPage() {
     );
   }
 
-  // Normal user dashboard
   if (loggedInUser && loggedInUser.role !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh]">
@@ -105,7 +100,6 @@ export default function LoginPage() {
     );
   }
 
-  // Login / Signup form
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
       <h1 className="text-3xl font-semibold mb-6">

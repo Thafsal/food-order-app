@@ -1,17 +1,21 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-export const fetchCategories = createAsyncThunk("categories/fetch", async () => {
-  const res = await fetch("https://www.themealdb.com/api/json/v1/1/categories.php");
-  const data = await res.json();
-  return data.categories || [];
-});
+export const fetchCategories = createAsyncThunk(
+  "categories/fetchCategories",
+  async () => {
+    const res = await fetch("https://www.themealdb.com/api/json/v1/1/categories.php");
+    const data = await res.json();
+    return data.categories || [];
+  }
+);
 
 const categorySlice = createSlice({
   name: "categories",
   initialState: {
     list: [],
-    selected: "All",
+    selected: null, 
     loading: false,
+    error: null,
   },
   reducers: {
     selectCategory: (state, action) => {
@@ -27,8 +31,9 @@ const categorySlice = createSlice({
         state.loading = false;
         state.list = action.payload;
       })
-      .addCase(fetchCategories.rejected, (state) => {
+      .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.error.message;
       });
   },
 });

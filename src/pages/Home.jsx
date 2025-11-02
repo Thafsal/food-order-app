@@ -10,6 +10,12 @@ export default function HomePage() {
   const { list: meals, loading } = useSelector((state) => state.foods);
   const { selected } = useSelector((state) => state.categories);
 
+  // ✅ Always fetch all foods on first load
+  useEffect(() => {
+    dispatch(fetchAllFoods());
+  }, [dispatch]);
+
+  // ✅ When category changes, fetch accordingly
   useEffect(() => {
     if (selected) {
       dispatch(fetchFoodsByCategory(selected));
