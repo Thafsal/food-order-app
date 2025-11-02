@@ -1,5 +1,5 @@
-// src/pages/HomePage.jsx
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import ProductCard from "../components/ProductCard";
 import CategoryFilter from "../components/CategoryFilter";
 import Carrousal from "../components/Carrousal";
@@ -7,6 +7,7 @@ import Carrousal from "../components/Carrousal";
 export default function HomePage({ searchQuery }) {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { selected } = useSelector((state) => state.categories);
 
   useEffect(() => {
     async function fetchMeals() {
@@ -16,7 +17,11 @@ export default function HomePage({ searchQuery }) {
 
         if (searchQuery && searchQuery.trim() !== "") {
           url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${searchQuery}`;
-        } else {
+        }
+        else if (selected && selected !== "All") {
+          url = `https://www.themealdb.com/api/json/v1/1/filter.php?c=${selected}`;
+        }
+        else {
           url = "https://www.themealdb.com/api/json/v1/1/search.php?s=";
         }
 
@@ -31,7 +36,7 @@ export default function HomePage({ searchQuery }) {
     }
 
     fetchMeals();
-  }, [searchQuery]);
+  }, [searchQuery, selected]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">

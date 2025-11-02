@@ -13,29 +13,37 @@ export default function CategoryFilter() {
   if (loading) return <p className="text-center py-4">Loading categories...</p>;
 
   return (
-    <div id="categories" className="flex flex-wrap gap-1  justify-center ">
-      <button
-        onClick={() => dispatch(selectCategory("All"))}
-        className={`px-4 py-2 rounded-full text-sm font-medium ${
-          selected === "All"
-            ? "bg-orange-500 text-white"
-            : "bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-gray-100"
-        }`}
-      >
-        All
-      </button>
+    <div
+      id="categories"
+      className="flex flex-wrap gap-4 justify-center py-6"
+    >
       {list.map((cat) => (
-        <button
+        <div
           key={cat.idCategory}
           onClick={() => dispatch(selectCategory(cat.strCategory))}
-          className={`px-4 py-2 rounded-full text-sm font-medium ${
+          className={`cursor-pointer flex flex-col items-center p-4 border rounded-xl shadow-sm transition-transform hover:scale-105 ${
             selected === cat.strCategory
-              ? "bg-orange-500 text-white"
-              : "bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-gray-100"
+              ? "border-orange-500 bg-orange-50 dark:bg-slate-700"
+              : "border-gray-300 bg-white dark:bg-slate-800"
           }`}
         >
-          {cat.strCategory}
-        </button>
+          {cat.strCategoryThumb && (
+            <img
+              src={cat.strCategoryThumb}
+              alt={cat.strCategory}
+              className="w-8 h-8 object-cover rounded-full mb-2"
+            />
+          )}
+          <p
+            className={`text-sm font-medium text-center ${
+              selected === cat.strCategory
+                ? "text-orange-600"
+                : "text-gray-800 dark:text-gray-100"
+            }`}
+          >
+            {cat.strCategory}
+          </p>
+        </div>
       ))}
     </div>
   );

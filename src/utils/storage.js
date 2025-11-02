@@ -1,21 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useState } from "react";
 
- function useLocalStorage(key, initial) {
-  const [state, setState] = useState(() => {
+export default function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
     try {
-      const raw = localStorage.getItem(key)
-      return raw ? JSON.parse(raw) : initial
-    } catch {
-      return initial
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.error(error);
+      return initialValue;
     }
-  })
+  });
 
-  useEffect(() => {
-    try { localStorage.setItem(key, JSON.stringify(state)) } catch {}
-  }, [key, state])
+  const setValue = (value) => {
+    try {
+      const valueToStore =
+        value instanceof Function ? value(storedValue) : value;
+      setStoredValue(valueToStore);
+      localStorage.setItem(key, JSON.stringify(valueToStore));
+      // 🔥 Trigger custom event so all components know data changed
+      window.dispatchEvent(new Event("storage-update"));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  return [state, setState]
+  return [storedValue, setValue];
 }
-
-
-export default useLocalStorage

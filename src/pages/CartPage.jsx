@@ -1,15 +1,69 @@
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, removeFromCart, clearCart } from "../features/cartSlice";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import useLocalStorage from "../utils/storage";
 
 export default function CartPage() {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
+  const [orders, setOrders] = useLocalStorage("orders", []);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [form, setForm] = useState({ name: "", address: "", payment: "" });
+  const [errors, setErrors] = useState({});
+  const [orderPlaced, setOrderPlaced] = useState(false);
 
   const totalAmount = cartItems.reduce(
-    (sum, item) => sum + item.quantity * (item.price || 100), // placeholder if no price
+    (sum, item) => sum + item.quantity * (item.price || 100),
     0
   );
+
+  const handleCheckout = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+
+    if (!form.name.trim()) newErrors.name = "Name is required";
+    if (!form.address.trim()) newErrors.address = "Address is required";
+    if (!form.payment) newErrors.payment = "Select a payment method";
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    const order = {
+      id: Date.now(),
+      items: cartItems,
+      total: totalAmount,
+      date: new Date().toLocaleString(),
+      user: form.name,
+      address: form.address,
+      payment: form.payment,
+    };
+
+    setOrders([...orders, order]);
+    dispatch(clearCart());
+    setShowCheckout(false);
+    setOrderPlaced(true);
+  };
+
+  if (orderPlaced) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center">
+        <h2 className="text-2xl font-bold text-green-600 mb-3">
+          🎉 Order Placed Successfully!
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300">
+          Thank you for choosing <span className="font-semibold">FoodAura</span>.
+          Your delicious meal will arrive soon!
+        </p>
+        <Link
+          to="/"
+          className="mt-6 inline-block bg-orange-600 text-white px-5 py-2 rounded"
+        >
+          Back to Home
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -83,12 +137,87 @@ export default function CartPage() {
               >
                 Clear Cart
               </button>
-              <button className="bg-orange-600 text-white px-4 py-2 rounded">
+              <button
+                onClick={() => setShowCheckout(true)}
+                className="bg-orange-600 text-white px-4 py-2 rounded"
+              >
                 Checkout
               </button>
             </div>
           </div>
         </>
+      )}
+
+      {showCheckout && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 w-96">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+              Checkout
+            </h3>
+            <form onSubmit={handleCheckout} className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={form.name}
+                  onChange={(e) =>
+                    setForm({ ...form, name: e.target.value })
+                  }
+                  className="w-full p-2 border rounded bg-gray-100 dark:bg-slate-700"
+                />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                )}
+              </div>
+              <div>
+                <textarea
+                  placeholder="Delivery Address"
+                  value={form.address}
+                  onChange={(e) =>
+                    setForm({ ...form, address: e.target.value })
+                  }
+                  className="w-full p-2 border rounded bg-gray-100 dark:bg-slate-700"
+                  rows="3"
+                ></textarea>
+                {errors.address && (
+                  <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+                )}
+              </div>
+              <div>
+                <select
+                  value={form.payment}
+                  onChange={(e) =>
+                    setForm({ ...form, payment: e.target.value })
+                  }
+                  className="w-full p-2 border rounded bg-gray-100 dark:bg-slate-700"
+                >
+                  <option value="">Select Payment Method</option>
+                  <option value="COD">Cash on Delivery</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Card">Credit/Debit Card</option>
+                </select>
+                {errors.payment && (
+                  <p className="text-red-500 text-sm mt-1">{errors.payment}</p>
+                )}
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCheckout(false)}
+                  className="px-4 py-2 border rounded text-gray-700 dark:text-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-orange-600 text-white rounded"
+                >
+                  Confirm Order
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -2,12 +2,29 @@ import { ShoppingCart, Search, Sun, Moon, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import useLocalStorage from "../utils/storage";
 import foodaura from "../assets/foodaura-logo.png";
-import { Link } from "react-router-dom";
 
 export default function Navbar({ brand = "FoodAura", onSearch }) {
   const { theme, setTheme } = useTheme();
   const [q, setQ] = useState("");
+  const [loggedInUser, setLoggedInUser] = useLocalStorage("loggedInUser", null);
+  const navigate = useNavigate();
+
+  const cartItems = useSelector((state) => state.cart.items);
+  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // 🔥 Re-render when localStorage updates
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      const user = JSON.parse(localStorage.getItem("loggedInUser"));
+      setLoggedInUser(user);
+    };
+    window.addEventListener("storage-update", handleStorageUpdate);
+    return () =>
+      window.removeEventListener("storage-update", handleStorageUpdate);
+  }, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -16,15 +33,19 @@ export default function Navbar({ brand = "FoodAura", onSearch }) {
     return () => clearTimeout(handler);
   }, [q, onSearch]);
 
-  const cartItems = useSelector((state) => state.cart.items);
-  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+
+  const handleLogout = () => {
+    setLoggedInUser(null);
+    localStorage.removeItem("loggedInUser");
+    window.dispatchEvent(new Event("storage-update"));
+    navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white/80 dark:bg-slate-900/70 backdrop-blur text-gray-900 dark:text-gray-100 transition-colors duration-300">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="h-16 flex items-center justify-between">
+        <div className="h-16 flex items-center justify-between gap-6">
           <Link
             to="/"
             className="flex items-center gap-3 text-orange-600 dark:text-orange-400 font-semibold text-2xl"
@@ -45,65 +66,69 @@ export default function Navbar({ brand = "FoodAura", onSearch }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-3">
-              <nav className="flex items-center gap-4 text-sm">
-                <Link
-                  to="/categories"
-                  className="text-gray-700 dark:text-gray-200 hover:text-orange-600"
-                >
-                  Categories
-                </Link>
-                <Link
-                  to="/contact"
-                  className="text-gray-700 dark:text-gray-200 hover:text-orange-600"
-                >
-                  Contact
-                </Link>
-              </nav>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={toggleTheme}
+              title="Toggle theme"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5 text-yellow-400" />
+              ) : (
+                <Moon className="h-5 w-5 text-gray-700" />
+              )}
+            </button>
 
-              <button
-                onClick={toggleTheme}
-                title="Toggle theme"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800"
+            <Link
+              to="/cart"
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800"
+            >
+              <ShoppingCart className="h-5 w-5 text-gray-700 dark:text-gray-100" />
+              {totalQuantity > 0 && (
+                <span className="absolute -top-1 -right-1 grid min-w-5 min-h-5 place-items-center rounded-full bg-orange-600 px-1 text-[10px] text-white">
+                  {totalQuantity}
+                </span>
+              )}
+            </Link>
+
+            <nav className="hidden md:flex items-center gap-6 text-sm">
+              <Link
+                to="/categories"
+                className="text-gray-700 dark:text-gray-200 hover:text-orange-600"
               >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5 text-yellow-400" />
-                ) : (
-                  <Moon className="h-5 w-5 text-gray-700" />
-                )}
-              </button>
+                Categories
+              </Link>
+              <Link
+                to="/contact"
+                className="text-gray-700 dark:text-gray-200 hover:text-orange-600"
+              >
+                Contact
+              </Link>
+            </nav>
 
+            {loggedInUser ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-700 dark:text-gray-200">
+                  Hi, {loggedInUser.name}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-gray-700 dark:text-gray-200  px-3 py-2 rounded hover:text-orange-600"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
               <Link
                 to="/login"
-                className="text-sm text-gray-700 dark:text-gray-200 border px-3 py-2 rounded"
+                className="text-sm text-gray-700 dark:text-gray-200 px-3 py-2 rounded hover:text-orange-600"
               >
                 Login
               </Link>
+            )}
 
-              <Link
-                to="/cart"
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800"
-              >
-                <ShoppingCart className="h-5 w-5 text-gray-700 dark:text-gray-100" />
-                {totalQuantity > 0 && (
-                  <span className="absolute -top-1 -right-1 grid min-w-5 min-h-5 place-items-center rounded-full bg-orange-600 px-1 text-[10px] text-white">
-                    {totalQuantity}
-                  </span>
-                )}
-              </Link>
-            </div>
+            {/* Mobile Menu */}
             <div className="md:hidden flex items-center gap-2">
-              <button
-                onClick={toggleTheme}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700"
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5 text-yellow-400" />
-                ) : (
-                  <Moon className="h-5 w-5 text-gray-700" />
-                )}
-              </button>
               <button className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700">
                 <Menu className="h-5 w-5" />
               </button>
