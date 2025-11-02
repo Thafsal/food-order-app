@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories, selectCategory } from "../features/categorySlice";
+import { fetchAllFoods } from "../features/foodSlice";
 
 export default function CategoryFilter() {
   const dispatch = useDispatch();
@@ -10,17 +11,23 @@ export default function CategoryFilter() {
     dispatch(fetchCategories());
   }, [dispatch]);
 
+  const handleCategoryClick = (category) => {
+    if (selected === category) {
+      dispatch(selectCategory(null));
+      dispatch(fetchAllFoods());
+    } else {
+      dispatch(selectCategory(category));
+    }
+  };
+
   if (loading) return <p className="text-center py-4">Loading categories...</p>;
 
   return (
-    <div
-      id="categories"
-      className="flex flex-wrap gap-4 justify-center py-6"
-    >
+    <div id="categories" className="flex flex-wrap gap-4 justify-center py-6">
       {list.map((cat) => (
         <div
           key={cat.idCategory}
-          onClick={() => dispatch(selectCategory(cat.strCategory))}
+          onClick={() => handleCategoryClick(cat.strCategory)}
           className={`cursor-pointer flex flex-col items-center p-4 border rounded-xl shadow-sm transition-transform hover:scale-105 ${
             selected === cat.strCategory
               ? "border-orange-500 bg-orange-50 dark:bg-slate-700"

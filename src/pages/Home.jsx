@@ -1,42 +1,22 @@
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllFoods, fetchFoodsByCategory } from "../features/foodSlice";
 import ProductCard from "../components/ProductCard";
 import CategoryFilter from "../components/CategoryFilter";
 import Carrousal from "../components/Carrousal";
 
-export default function HomePage({ searchQuery }) {
-  const [meals, setMeals] = useState([]);
-  const [loading, setLoading] = useState(false);
+export default function HomePage() {
+  const dispatch = useDispatch();
+  const { list: meals, loading } = useSelector((state) => state.foods);
   const { selected } = useSelector((state) => state.categories);
 
   useEffect(() => {
-    async function fetchMeals() {
-      try {
-        setLoading(true);
-        let url;
-
-        if (searchQuery && searchQuery.trim() !== "") {
-          url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${searchQuery}`;
-        }
-        else if (selected && selected !== "All") {
-          url = `https://www.themealdb.com/api/json/v1/1/filter.php?c=${selected}`;
-        }
-        else {
-          url = "https://www.themealdb.com/api/json/v1/1/search.php?s=";
-        }
-
-        const res = await fetch(url);
-        const data = await res.json();
-        setMeals(data.meals || []);
-      } catch (err) {
-        console.error("Failed to fetch meals:", err);
-      } finally {
-        setLoading(false);
-      }
+    if (selected) {
+      dispatch(fetchFoodsByCategory(selected));
+    } else {
+      dispatch(fetchAllFoods());
     }
-
-    fetchMeals();
-  }, [searchQuery, selected]);
+  }, [dispatch, selected]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
